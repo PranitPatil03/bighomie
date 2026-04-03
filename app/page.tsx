@@ -30,6 +30,8 @@ const loadingStyle: CSSProperties = {
   fontFamily: "'DM Sans','Helvetica Neue',sans-serif",
 };
 
+const BOOTSTRAP_TIMEOUT_MS = 8000;
+
 export default function Home() {
   const [session, setSession] = useState<Session>();
   const [profile, setProfile] = useState<ProfileRecord>();
@@ -53,6 +55,12 @@ export default function Home() {
   useEffect(() => {
     let mounted = true;
 
+    const timeoutId = window.setTimeout(() => {
+      if (!mounted) return;
+      setLoading(false);
+      setInitError((current) => current || "Session initialization timed out. You can continue and retry.");
+    }, BOOTSTRAP_TIMEOUT_MS);
+
     const bootstrap = async () => {
       try {
         const {
@@ -61,9 +69,15 @@ export default function Home() {
 
         if (!mounted) return;
         setSession(currentSession ?? undefined);
+        setLoading(false);
 
         if (currentSession?.user?.id) {
-          await loadProfile(currentSession.user.id);
+          void loadProfile(currentSession.user.id).catch((caughtError: unknown) => {
+            if (!mounted) return;
+            setProfile(undefined);
+            const text = caughtError instanceof Error ? caughtError.message : "Failed to load user profile.";
+            setInitError(text);
+          });
         }
       } catch (caughtError: unknown) {
         if (!mounted) return;
@@ -71,8 +85,9 @@ export default function Home() {
         setProfile(undefined);
         const text = caughtError instanceof Error ? caughtError.message : "Failed to initialize app session.";
         setInitError(text);
+        setLoading(false);
       } finally {
-        if (mounted) setLoading(false);
+        window.clearTimeout(timeoutId);
       }
     };
 
@@ -81,6 +96,7 @@ export default function Home() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+      setLoading(false);
       setSession(nextSession ?? undefined);
       setInitError("");
 
@@ -100,6 +116,7 @@ export default function Home() {
 
     return () => {
       mounted = false;
+      window.clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, [loadProfile]);

@@ -59,6 +59,9 @@ function GBtn({children,onClick,style={}}){
 function OBtn({children,onClick,style={}}){
   return <button onClick={onClick} style={{background:"transparent",color:B.gold,border:"1px solid rgba(232,168,56,0.4)",borderRadius:"10px",padding:"9px 18px",fontSize:"13px",fontWeight:"600",fontFamily:B.body,cursor:"pointer",...style}}>{children}</button>;
 }
+function PBtn({children,onClick,style={},disabled=false}){
+  return <button disabled={disabled} onClick={onClick} style={{background:B.goldGrad,color:B.obsidian,border:"none",borderRadius:"12px",padding:"12px 22px",fontSize:"14px",fontWeight:"900",fontFamily:B.body,cursor:disabled?"not-allowed":"pointer",opacity:disabled?0.6:1,boxShadow:"0 10px 28px rgba(232,168,56,0.25)",...style}}>{children}</button>;
+}
 function BHInsight({text}){
   return(
     <div style={{background:B.espresso,border:"1px solid rgba(232,168,56,0.2)",borderLeft:`4px solid ${B.gold}`,borderRadius:"14px",padding:"16px 18px",display:"flex",gap:"12px",alignItems:"flex-start"}}>
