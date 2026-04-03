@@ -65,7 +65,15 @@ const handler: LegacyHandler = async (req, res) => {
       },
     });
   } catch (caughtError: unknown) {
-    return error(res, 500, errorMessage(caughtError, "Failed to save onboarding"));
+    const message = errorMessage(caughtError, "Failed to save onboarding");
+    if (message.includes("Could not find the table 'public.profiles'")) {
+      return error(
+        res,
+        500,
+        "Database schema is not initialized. Run supabase/schema.sql in the Supabase SQL editor.",
+      );
+    }
+    return error(res, 500, message);
   }
 };
 
